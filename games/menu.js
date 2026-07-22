@@ -17,6 +17,7 @@ module.exports = {
         .setCustomId('games_menu')
         .setPlaceholder('اختر لعبة…')
         .addOptions([
+          { label: 'مافيا', value: 'mafia' },
           { label: 'ألغاز (كتابة)', value: 'riddle' },
           { label: 'صح ولا خطأ', value: 'truefalse' },
           { label: 'علم الدولة', value: 'flags' },

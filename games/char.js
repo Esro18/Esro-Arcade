@@ -21,7 +21,7 @@ module.exports = {
   },
 
   handle(i) {
-    const cooldown = require('../system/cooldown');
+    const cooldown = require('../systems/cooldown');
   const config = require('../systems/gameconfig');
 
 if (cooldown.check(i.user.id, 'riddle', config.cooldown)) {

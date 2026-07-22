@@ -57,7 +57,26 @@ client.on('messageCreate', async (msg) => {
 });
 
 // تفاعل الأزرار + القائمة + السلاش
+const allowedGuilds = require('./config/allowedGuilds.json').guilds;
 client.on('interactionCreate', async (i) => {
+
+  // منع البوت من العمل خارج السيرفرات المحددة
+  const guildAllowed = allowedGuilds.some(g => g.id === i.guild.id);
+
+  if (!guildAllowed) {
+    return i.reply({
+      content: "❌ هذا البوت غير متاح في هذا السيرفر.",
+      ephemeral: true
+    });
+  }
+
+  // صلاحيات الأدمن
+  if (!isAdmin(i.member)) {
+    return i.reply({ content: "❌ ما عندك صلاحية تتحكم بالبوت.", ephemeral: true });
+  }
+
+  // 
+});
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {

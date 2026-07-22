@@ -397,6 +397,7 @@ module.exports = {
       return;
     }
 
+        // استهداف المافيا
     if (i.customId.startsWith('mafia_target_')) {
       const targetId = i.customId.split('_')[2];
       const mafia = game.players.get(i.user.id);
@@ -441,6 +442,7 @@ module.exports = {
       return i.reply({ content: 'تم إرسال الطلب للمافيا الثاني.', ephemeral: true });
     }
 
+    // تأكيد المافيا
     if (i.customId.startsWith('mafia_confirm_')) {
       const parts = i.customId.split('_');
       const action = parts[2];
@@ -460,6 +462,7 @@ module.exports = {
       }
     }
 
+    // حماية الدكتور
     if (i.customId.startsWith('doctor_protect_')) {
       const targetId = i.customId.split('_')[2];
       const doctor = game.players.get(i.user.id);
@@ -491,6 +494,7 @@ module.exports = {
       });
     }
 
+    // تحقق المحقق
     if (i.customId.startsWith('detective_check_')) {
       const targetId = i.customId.split('_')[2];
       const detective = game.players.get(i.user.id);
@@ -512,6 +516,7 @@ module.exports = {
       });
     }
 
+    // إنهاء الليل
     if (i.customId === 'mafia_end_night') {
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (!channel) return;
@@ -519,6 +524,7 @@ module.exports = {
       return;
     }
 
+    // تصويت النهار
     if (i.customId.startsWith('day_vote_')) {
       const targetId = i.customId.split('_')[2];
       const voter = game.players.get(i.user.id);
@@ -535,6 +541,7 @@ module.exports = {
       });
     }
 
+    // تخطي النهار
     if (i.customId === 'day_skip') {
       const voter = game.players.get(i.user.id);
       if (!voter || !voter.alive) {
@@ -550,6 +557,7 @@ module.exports = {
       });
     }
 
+    // إنهاء النهار
     if (i.customId === 'day_end') {
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (!channel) return;
@@ -590,52 +598,16 @@ module.exports = {
         await startNight(client, channel);
       }
     }
-  } 
-  // إنهاء اللعبة يدويًا من الأدمن
-if (i.customId === 'mafia_end_game') {
-  if (i.user.id !== game.adminId) {
-    return i.reply({ content: 'فقط الأدمن يقدر ينهي اللعبة.', ephemeral: true });
-  }
 
-  const channel = await client.channels.fetch(game.channelId).catch(() => null);
-  if (!channel) return;
+    // إنهاء اللعبة يدويًا من الأدمن
+    if (i.customId === 'mafia_end_game') {
+      if (i.user.id !== game.adminId) {
+        return i.reply({ content: 'فقط الأدمن يقدر ينهي اللعبة.', ephemeral: true });
+      }
 
-  await endGame(channel);
-  return i.reply({ content: '✅ تم إنهاء اللعبة بنجاح.', ephemeral: true });
-}
+      const channel = await client.channels.fetch(game.channelId).catch(() => null);
+      if (!channel) return;
 
-};
-// =========================
-// دوال الفوز وإنهاء اللعبة
-// =========================
-
-function checkWin(channel) {
-  const alive = getAlivePlayers();
-  const mafiaAlive = alive.filter(p => p.role === ROLES.MAFIA).length;
-  const civAlive = alive.filter(p => p.role !== ROLES.MAFIA).length;
-
-  if (mafiaAlive === 0) {
-    channel.send('🎉 فوز المواطنين! المافيا ماتوا كلهم.');
-    return true;
-  }
-
-  if (mafiaAlive >= civAlive) {
-    channel.send('🔥 فوز المافيا! عددهم صار يساوي أو أكثر من المواطنين.');
-    return true;
-  }
-
-  return false;
-}
-
-async function endGame(channel) {
-  await channel.send('🏁 انتهت اللعبة! شكراً لكل المشاركين ❤️');
-  resetGame();
-}
-
-async function startNextRound(client, channel) {
-  if (!checkWin(channel)) {
-    await startNight(client, channel);
-  } else {
-    await endGame(channel);
-  }
-}
+      await endGame(channel);
+      return i.reply({ content: '✅ تم إنهاء اللعبة بنجاح.', ephemeral: true });
+    }

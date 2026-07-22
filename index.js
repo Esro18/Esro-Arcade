@@ -65,12 +65,14 @@ client.on('interactionCreate', async (i) => {
   const guildAllowed = allowedGuilds.some(g => g.id === i.guild.id);
 
   if (!guildAllowed) {
-    console.log(`🚫 محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
-    return i.reply({
-      content: "❌ هذا البوت غير متاح في هذا السيرفر.",
-      ephemeral: true
-    });
-  }
+  console.log(`⛔ محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
+  const embed = new EmbedBuilder()
+    .setColor(0xff0000)
+    .setTitle('🚫 غير مسموح')
+    .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
+   return i.reply({ embeds: [embed], ephemeral: true });
+   }
+
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {

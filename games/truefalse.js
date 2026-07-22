@@ -1,8 +1,15 @@
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder
+} = require('discord.js');
+
 const points = require('../systems/points');
 const cooldown = require('../systems/cooldown');
 const config = require('../systems/gameconfig');
 
+// أسئلة صح ولا خطأ عشوائية
 const questions = [
   { q: "الحديد يطفو فوق الماء.", a: false },
   { q: "القمر يعكس ضوء الشمس.", a: true },
@@ -28,36 +35,72 @@ const questions = [
 
 module.exports = {
   start(msg) {
+    // سؤال عشوائي
     const q = questions[Math.floor(Math.random() * questions.length)];
 
-    msg.reply({
-      content: `❓ صح ولا خطأ:\n${q.q}`,
-      components: [
-        new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId(`tf_${q.a ? 'true' : 'false'}_correct`)
-            .setLabel('صح')
-            .setStyle(ButtonStyle.Success),
+    const embed = new EmbedBuilder()
+      .setTitle("❓ صح ولا خطأ")
+      .setDescription(q.q)
+      .setColor(0x00aeff);
 
-          new ButtonBuilder()
-            .setCustomId(`tf_${q.a ? 'false' : 'true'}_wrong`)
-            .setLabel('خطأ')
-            .setStyle(ButtonStyle.Danger)
-        )
-      ]
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`tf_${q.a ? 'correct' : 'wrong'}_true`)
+        .setLabel("صح")
+        .setStyle(ButtonStyle.Success),
+
+      new ButtonBuilder()
+        .setCustomId(`tf_${!q.a ? 'correct' : 'wrong'}_false`)
+        .setLabel("خطأ")
+        .setStyle(ButtonStyle.Danger)
+    );
+
+    msg.reply({
+      embeds: [embed],
+      components: [row]
     });
   },
 
-  handle(i) {
+  async handle(i) {
+    // كول داون
     if (cooldown.check(i.user.id, 'truefalse', config.cooldown)) {
       return i.reply({ content: '⏳ انتظر شوي.', ephemeral: true });
     }
 
-    if (i.customId.includes("correct")) {
+    const isCorrect = i.customId.includes("correct");
+
+    // تعطيل الأزرار بعد أول ضغط
+    const row = ActionRowBuilder.from(i.message.components[0]);
+    row.components.forEach(btn => btn.setDisabled(true));
+    await i.update({ components: [row] });
+
+    // صلاحية الأدمن
+    const isAdmin = i.member.roles.cache.some(r => r.name === "Admin Games");
+
+    // إذا الإجابة صحيحة
+    if (isCorrect) {
       points.addPoints(i.user.id, config.points.truefalse);
-      return i.reply({ content: `🔥 إجابة صحيحة! +${config.points.truefalse}`, ephemeral: true });
+      return i.followUp({
+        content: `🔥 إجابة صحيحة! +${config.points.truefalse}`,
+        ephemeral: false
+      });
     }
 
-    return i.reply({ content: "❌ خطأ!", ephemeral: true });
+    // إذا اللاعب عادي → ما يشوف الإجابة الصحيحة
+    if (!isAdmin) {
+      return i.followUp({
+        content: "❌ خطأ!",
+        ephemeral: false
+      });
+    }
+
+    // إذا أدمن → يظهر الإجابة الصحيحة
+    const qText = i.message.embeds[0]?.data?.description;
+    const correctObj = questions.find(q => q.q === qText);
+
+    return i.followUp({
+      content: `❌ خطأ!\n✅ الإجابة الصحيحة: **${correctObj.a ? "صح" : "خطأ"}**`,
+      ephemeral: false
+    });
   }
 };

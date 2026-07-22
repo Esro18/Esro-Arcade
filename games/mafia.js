@@ -611,3 +611,6 @@ module.exports = {
       await endGame(channel);
       return i.reply({ content: '✅ تم إنهاء اللعبة بنجاح.', ephemeral: true });
     }
+      } // نهاية دالة handle
+
+}; // نهاية module.exports

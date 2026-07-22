@@ -32,9 +32,17 @@ module.exports = {
     msg.reply({ embeds: [embed], components: [menu] });
   },
 
-  handle(i, games) {
+  async handle(i, games) {
+
+    // أهم سطر — يمنع التأخير ويمنع خطأ "didn't respond in time"
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     const game = games[i.values[0]];
-    if (!game) return;
+    if (!game) {
+      return i.editReply({ content: "❌ اللعبة غير موجودة." });
+    }
+
+    // تشغيل اللعبة
     return game.start(i);
   }
 };

@@ -61,9 +61,13 @@ module.exports = {
   },
 
   async handle(i) {
+
+    // منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     // كول داون
     if (cooldown.check(i.user.id, 'flags', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.' });
     }
 
     const isCorrect = i.customId === 'flag_correct';

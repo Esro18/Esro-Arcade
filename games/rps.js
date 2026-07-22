@@ -32,10 +32,14 @@ module.exports = {
     });
   },
 
-  handle(i) {
+  async handle(i) {
+
+    // أهم شيء — منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     // كول داون
     if (cooldown.check(i.user.id, 'rps', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.' });
     }
 
     const userChoice = i.customId.split("_")[1];
@@ -47,9 +51,8 @@ module.exports = {
       points.addPoints(i.user.id, config.points.rps);
     }
 
-    return i.reply({
-      content: `أنت اخترت: **${userChoice}**\nالبوت اختار: **${botChoice}**\nالنتيجة: ${res}`,
-      ephemeral: true
+    return i.editReply({
+      content: `أنت اخترت: **${userChoice}**\nالبوت اختار: **${botChoice}**\nالنتيجة: ${res}`
     });
   }
 };

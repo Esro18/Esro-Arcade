@@ -18,6 +18,20 @@ module.exports = {
     msg.reply(`🔮 **لغز:**\n${r.q}\n\n✍️ اكتب الإجابة في الشات`);
   },
 
+  async handle(i) {
+
+    // منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
+    // كول داون
+    if (cooldown.check(i.user.id, 'riddle', config.cooldown)) {
+      return i.editReply({ content: '⏳ انتظر شوي.' });
+    }
+
+    // ما فيه أزرار هنا، اللعبة تعتمد على الرسائل
+    return i.editReply({ content: "✍️ اكتب الإجابة في الشات." });
+  },
+
   checkMessage(msg) {
     const r = active[msg.channel.id];
     if (!r) return;

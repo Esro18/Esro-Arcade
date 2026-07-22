@@ -24,10 +24,14 @@ module.exports = {
     });
   },
 
-  handle(i) {
+  async handle(i) {
+
+    // منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     // كول داون
     if (cooldown.check(i.user.id, 'missing', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.' });
     }
 
     const w = i.customId.split("_")[2];
@@ -35,9 +39,8 @@ module.exports = {
     // إضافة النقاط
     points.addPoints(i.user.id, config.points.missing);
 
-    return i.reply({
-      content: `الكلمة هي: **${w}** (+${config.points.missing} نقاط)`,
-      ephemeral: true
+    return i.editReply({
+      content: `الكلمة هي: **${w}** (+${config.points.missing} نقاط)`
     });
   }
 };

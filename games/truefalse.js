@@ -62,9 +62,13 @@ module.exports = {
   },
 
   async handle(i) {
+
+    // منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     // كول داون
     if (cooldown.check(i.user.id, 'truefalse', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر شوي.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر شوي.' });
     }
 
     const isCorrect = i.customId.includes("correct");

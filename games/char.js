@@ -43,9 +43,13 @@ module.exports = {
   },
 
   async handle(i) {
+
+    // منع التعليق
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     // كول داون
     if (cooldown.check(i.user.id, 'char', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.' });
     }
 
     // استخراج اسم الشخصية

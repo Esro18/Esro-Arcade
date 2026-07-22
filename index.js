@@ -56,14 +56,16 @@ client.on('messageCreate', async (msg) => {
   if (msg.content === '!games') return menu.start(msg);
 });
 
-// تفاعل الأزرار + القائمة + السلاش
+// تحميل السيرفرات المسموح بها
 const allowedGuilds = require('./config/allowedGuilds.json').guilds;
-client.on('interactionCreate', async (i) => {
 
+// تفاعل الأزرار + القائمة + السلاش
+client.on('interactionCreate', async (i) => {
   // منع البوت من العمل خارج السيرفرات المحددة
   const guildAllowed = allowedGuilds.some(g => g.id === i.guild.id);
 
   if (!guildAllowed) {
+    console.log(`🚫 محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
     return i.reply({
       content: "❌ هذا البوت غير متاح في هذا السيرفر.",
       ephemeral: true
@@ -72,15 +74,10 @@ client.on('interactionCreate', async (i) => {
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {
-    return i.reply({ content: "❌ ما عندك صلاحية تتحكم بالبوت.", ephemeral: true });
-  }
-
-  // 
-});
-
-  // صلاحيات الأدمن
-  if (!isAdmin(i.member)) {
-    return i.reply({ content: "❌ ما عندك صلاحية تتحكم بالبوت.", ephemeral: true });
+    return i.reply({
+      content: "❌ ما عندك صلاحية تتحكم بالبوت.",
+      ephemeral: true
+    });
   }
 
   // قائمة الألعاب
@@ -145,7 +142,7 @@ client.on('interactionCreate', async (i) => {
         missing: missing,
         quiz: quiz
       },
-      gameState // ← أهم تعديل
+      gameState
     );
   }
 });

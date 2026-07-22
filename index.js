@@ -70,8 +70,10 @@ client.on('interactionCreate', async (i) => {
     .setColor(0xff0000)
     .setTitle('🚫 غير مسموح')
     .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
-   return i.reply({ embeds: [embed], ephemeral: true });
-   }
+  await i.reply({ embeds: [embed], ephemeral: true });
+  return; // ← هذا السطر مهم جدًا
+}
+
 
 
   // صلاحيات الأدمن

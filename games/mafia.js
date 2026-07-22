@@ -301,6 +301,8 @@ module.exports = {
   },
 
   async handle(i) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     const client = i.client;
 
     if (cooldown.check(i.user.id, 'mafia', config.cooldown)) {

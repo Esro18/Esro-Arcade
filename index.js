@@ -71,7 +71,7 @@ client.on('interactionCreate', async (i) => {
       .setTitle('🚫 غير مسموح')
       .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
     await i.reply({ embeds: [embed], ephemeral: true });
-    return;
+    return; // ← هذا السطر هو اللي يمنع التعليق في "thinking..."
   }
 
   // صلاحيات الأدمن

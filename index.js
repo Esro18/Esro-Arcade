@@ -8,7 +8,7 @@ function isAdmin(member) {
 }
 
 // الألعاب
-const riddles = require('./games/riddle'); // انتبه: اسم الملف riddle.js مو riddles.js
+const riddles = require('./games/riddle');
 const mafia = require('./games/mafia');
 const truefalse = require('./games/truefalse');
 const fasttype = require('./games/fasttype');
@@ -106,6 +106,12 @@ client.on('interactionCreate', async (i) => {
     const command = client.commands.get(i.commandName);
     if (!command) return;
 
+    // تعريف حالة الألعاب
+    const gameState = {
+      locked: false,
+      current: null
+    };
+
     await command.execute(
       i,
       {
@@ -119,7 +125,8 @@ client.on('interactionCreate', async (i) => {
         click: click,
         missing: missing,
         quiz: quiz
-      }
+      },
+      gameState // ← أهم تعديل
     );
   }
 });

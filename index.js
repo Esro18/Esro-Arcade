@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 
 // صلاحيات الأدمن
 function isAdmin(member) {
@@ -50,7 +50,6 @@ client.once('ready', () => {
 client.on('messageCreate', async (msg) => {
   if (msg.author.bot) return;
 
-  // ألغاز كتابة
   riddles.checkMessage(msg);
 
   if (msg.content === '!games') return menu.start(msg);
@@ -61,20 +60,19 @@ const allowedGuilds = require('./config/allowedGuilds.json').guilds;
 
 // تفاعل الأزرار + القائمة + السلاش
 client.on('interactionCreate', async (i) => {
+
   // منع البوت من العمل خارج السيرفرات المحددة
   const guildAllowed = allowedGuilds.some(g => g.id === i.guild.id);
 
   if (!guildAllowed) {
-  console.log(`⛔ محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
-  const embed = new EmbedBuilder()
-    .setColor(0xff0000)
-    .setTitle('🚫 غير مسموح')
-    .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
-  await i.reply({ embeds: [embed], ephemeral: true });
-  return; // ← هذا السطر مهم جدًا
-}
-
-
+    console.log(`⛔ محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
+    const embed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setTitle('🚫 غير مسموح')
+      .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
+    await i.reply({ embeds: [embed], ephemeral: true });
+    return;
+  }
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {
@@ -86,6 +84,7 @@ client.on('interactionCreate', async (i) => {
 
   // قائمة الألعاب
   if (i.isStringSelectMenu()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
     return menu.handle(i, {
       riddle: riddles,
       mafia: mafia,
@@ -102,6 +101,8 @@ client.on('interactionCreate', async (i) => {
 
   // أزرار الألعاب
   if (i.isButton()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     const handlers = {
       riddle_: riddles,
       mafia_: mafia,
@@ -123,10 +124,11 @@ client.on('interactionCreate', async (i) => {
 
   // أوامر السلاش
   if (i.isChatInputCommand()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
+
     const command = client.commands.get(i.commandName);
     if (!command) return;
 
-    // تعريف حالة الألعاب
     const gameState = {
       locked: false,
       current: null

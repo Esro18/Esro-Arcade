@@ -45,7 +45,7 @@ module.exports = {
   async handle(i) {
 
     // منع التعليق
-    await i.deferReply({ ephemeral: true }).catch(() => {});
+  return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
 
     // كول داون
     if (cooldown.check(i.user.id, 'char', config.cooldown)) {

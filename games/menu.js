@@ -35,7 +35,7 @@ module.exports = {
   async handle(i, games) {
 
     // أهم سطر — يمنع التأخير ويمنع خطأ "didn't respond in time"
-    await i.deferReply({ ephemeral: true }).catch(() => {});
+  return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
 
     const game = games[i.values[0]];
     if (!game) {

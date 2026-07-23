@@ -35,7 +35,7 @@ module.exports = {
   async handle(i) {
 
     // أهم شيء — منع التعليق
-    await i.deferReply({ ephemeral: true }).catch(() => {});
+  return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
 
     // كول داون
     if (cooldown.check(i.user.id, 'rps', config.cooldown)) {

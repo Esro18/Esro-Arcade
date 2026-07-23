@@ -311,7 +311,7 @@ module.exports = {
 
     if (i.customId === 'mafia_join') {
       if (game.started) {
-        return i.reply({ content: 'اللعبة بدأت بالفعل.', ephemeral: true });
+    return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
       }
 
       if (game.players.size >= 10) {

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 
 // صلاحيات الأدمن
 function isAdmin(member) {
@@ -55,29 +55,8 @@ client.on('messageCreate', async (msg) => {
   if (msg.content === '!games') return menu.start(msg);
 });
 
-// تحميل السيرفرات المسموح بها
-const allowedGuilds = require('./config/allowedGuilds.json').guilds;
-
 // تفاعل الأزرار + القائمة + السلاش
 client.on('interactionCreate', async (i) => {
-
-  // حماية البوت من العمل خارج السيرفرات المسموحة
-  const guildAllowed = allowedGuilds.some(g => g.id === i.guild.id);
-
-  if (!guildAllowed) {
-    console.log(`⛔ محاولة استخدام البوت من سيرفر غير مسموح: ${i.guild.name} (${i.guild.id})`);
-
-    const embed = new EmbedBuilder()
-      .setColor(0xff0000)
-      .setTitle('🚫 غير مسموح')
-      .setDescription(
-        '❌ هذا البوت غير متاح في هذا السيرفر.\n' +
-        '📩 للتواصل مع الدعم الفني:\n👉 https://discord.com/invite/cETU9ukj67'
-      );
-
-    await i.reply({ embeds: [embed], ephemeral: true });
-    return;
-  }
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {

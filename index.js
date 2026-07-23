@@ -69,22 +69,23 @@ client.on('interactionCreate', async (i) => {
     const embed = new EmbedBuilder()
       .setColor(0xff0000)
       .setTitle('🚫 غير مسموح')
-      .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 لاستخدام البوت قم بالتواصل مع الدعم الفني عبر سيرفرنا:\n👉 [اضغط هنا](https://discord.com/invite/cETU9ukj67)');
+      .setDescription('❌ هذا البوت غير متاح في هذا السيرفر.\n📩 للتواصل مع الدعم الفني:\n👉 https://discord.com/invite/cETU9ukj67');
     await i.reply({ embeds: [embed], ephemeral: true });
-    return; // ← هذا السطر هو اللي يمنع التعليق في "thinking..."
+    return;
   }
+
+  // ⚠️ أهم تعديل — يمنع التعليق نهائيًا
+  await i.deferReply({ ephemeral: true }).catch(() => {});
 
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {
-    return i.reply({
-      content: "❌ ما عندك صلاحية تتحكم بالبوت.",
-      ephemeral: true
+    return i.editReply({
+      content: "❌ ما عندك صلاحية تتحكم بالبوت."
     });
   }
 
   // قائمة الألعاب
   if (i.isStringSelectMenu()) {
-    await i.deferReply({ ephemeral: true }).catch(() => {});
     return menu.handle(i, {
       riddle: riddles,
       mafia: mafia,
@@ -101,7 +102,6 @@ client.on('interactionCreate', async (i) => {
 
   // أزرار الألعاب
   if (i.isButton()) {
-    await i.deferReply({ ephemeral: true }).catch(() => {});
 
     const handlers = {
       riddle_: riddles,
@@ -124,7 +124,6 @@ client.on('interactionCreate', async (i) => {
 
   // أوامر السلاش
   if (i.isChatInputCommand()) {
-    await i.deferReply({ ephemeral: true }).catch(() => {});
 
     const command = client.commands.get(i.commandName);
     if (!command) return;

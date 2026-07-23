@@ -1,12 +1,12 @@
 {
   "guilds": [
     {
-      "name": "Esro Server",
-      "id": "1111111111111111111"
+      "id": "123456789012345678",
+      "name": "Esro Arcade"
     },
     {
-      "name": "Test Server",
-      "id": "1470197895801344065"
+      "id": "1470197895801344065",
+      "name": "Test Server"
     }
   ]
 }

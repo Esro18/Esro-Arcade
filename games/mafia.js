@@ -295,7 +295,10 @@ module.exports = {
         .setStyle(ButtonStyle.Danger)
     );
 
-    msg.reply({ embeds: [embed], components: [row] });
+msg.channel.send({
+  embeds: [embed],
+  components: [row]
+});
   },
 
   async handle(i) {

@@ -13,16 +13,16 @@ const config = require('../systems/gameconfig');
 let game = {
   hostId: null,
   adminId: null,
-  players: new Map(), // id -> { id, role, alive }
+  players: new Map(),
   started: false,
   nightPhase: false,
   dayPhase: false,
-  mafiaTargets: new Map(), // mafiaId -> targetId
+  mafiaTargets: new Map(),
   mafiaCount: 0,
   doctorSelfUsed: 0,
   currentNight: 1,
-  pendingKill: null, // { targetId }
-  votes: new Map(), // voterId -> targetId
+  pendingKill: null,
+  votes: new Map(),
   skipVotes: new Set(),
   channelId: null
 };
@@ -97,18 +97,18 @@ async function sendRoleMessage(i, player) {
       content = `المافيا افتح عيونك.\nأنت **مافيا** لوحدك هذه الجولة.`;
     } else {
       const mates = mafiaPlayers.map(p => `<@${p.id}>`).join(', ');
-      content = `المافيا افتح عيونك وتعرف على خويك.\nأنت **مافيا**.\nالمافيا معك: ${mates}`;
+      content = `المافيا افتح عيونك.\nأنت **مافيا**.\nالمافيا معك: ${mates}`;
     }
   } else if (player.role === ROLES.DOCTOR) {
-    content = `الدكتور افتح عيونك و اختار شخص تحميه أو تحمي نفسك.\nتذكر: حماية نفسك لها عدد مرات محدود.`;
+    content = `الدكتور افتح عيونك.\nاختر شخص تحميه أو تحمي نفسك.`;
   } else if (player.role === ROLES.DETECTIVE) {
-    content = `المحقق افتح عيونك و اختار شخص تسأل عنه.\nالبوت بيعلمك إذا كان قاتل أو لا.`;
+    content = `المحقق افتح عيونك.\nاختر شخص تسأل عنه.`;
   } else {
-    content = `أنت **مواطن**.\nحاول تعيش وتكشف المافيا في التصويت.`;
+    content = `أنت **مواطن**.\nحاول تكشف المافيا.`;
   }
 
   await channel.send({
-    content: content,
+    content,
     allowedMentions: { users: [player.id] }
   });
 }
@@ -121,7 +121,7 @@ async function startNight(client, channel) {
   game.votes.clear();
   game.skipVotes.clear();
 
-  await channel.send('🌙 بدأ الليل… الكل يسكت.\nالأدوار تشتغل الآن بشكل مخفي.');
+  await channel.send('🌙 بدأ الليل…');
 
   for (const player of game.players.values()) {
     if (!player.alive) continue;
@@ -152,7 +152,7 @@ async function setupMafiaPhase(client, channel) {
   );
 
   await channel.send({
-    content: '🔪 المافيا: اختروا شخص تبي تقتلونه (التصويت بينكم).',
+    content: '🔪 المافيا: اختاروا الهدف.',
     components: [row]
   });
 }
@@ -175,7 +175,7 @@ async function setupDoctorPhase(client, channel) {
   );
 
   await channel.send({
-    content: '🩺 الدكتور: اختر شخص تحميه أو تحمي نفسك.',
+    content: '🩺 الدكتور: اختر شخص تحميه.',
     components: [row]
   });
 }
@@ -198,7 +198,7 @@ async function setupDetectivePhase(client, channel) {
   );
 
   await channel.send({
-    content: '🔍 المحقق: اختر شخص تسأل عنه إذا كان قاتل أو لا.',
+    content: '🔍 المحقق: اختر شخص تفحصه.',
     components: [row]
   });
 }
@@ -209,14 +209,14 @@ async function resolveNight(channel) {
 
   const killedId = game.pendingKill?.targetId || null;
   if (!killedId) {
-    await channel.send('🌅 الصباح: لم يتم قتل أحد هذه الليلة.');
+    await channel.send('🌅 الصباح: لم يتم قتل أحد.');
   } else {
     const player = game.players.get(killedId);
     if (!player || !player.alive) {
-      await channel.send('🌅 الصباح: الهدف كان غير صالح، لم يتم قتل أحد.');
+      await channel.send('🌅 الصباح: الهدف غير صالح.');
     } else {
       player.alive = false;
-      await channel.send(`🌅 الصباح: تم قتل <@${killedId}> هذه الليلة.`);
+      await channel.send(`🌅 الصباح: تم قتل <@${killedId}>.`);
     }
   }
 
@@ -230,7 +230,7 @@ async function startDay(channel) {
 
   const alive = getAlivePlayers();
   if (alive.length <= 1) {
-    await channel.send('🎮 انتهت اللعبة، ما بقي إلا لاعب واحد.');
+    await channel.send('🎮 انتهت اللعبة.');
     return;
   }
 
@@ -238,17 +238,17 @@ async function startDay(channel) {
     ...alive.slice(0, 5).map(p =>
       new ButtonBuilder()
         .setCustomId(`day_vote_${p.id}`)
-        .setLabel(`تصويت على ${p.id}`)
+        .setLabel(`تصويت ${p.id}`)
         .setStyle(ButtonStyle.Secondary)
     ),
     new ButtonBuilder()
       .setCustomId('day_skip')
-      .setLabel('تخطي / سكب')
+      .setLabel('تخطي')
       .setStyle(ButtonStyle.Primary)
   );
 
   await channel.send({
-    content: '🌞 النهار: صوتوا على الشخص اللي تشكون فيه أو اضغطوا تخطي.',
+    content: '🌞 النهار: صوتوا.',
     components: [row]
   });
 }
@@ -259,12 +259,12 @@ function checkWin(channel) {
   const civAlive = alive.filter(p => p.role !== ROLES.MAFIA).length;
 
   if (mafiaAlive === 0) {
-    channel.send('🎉 فوز المواطنين! المافيا ماتوا كلهم.');
+    channel.send('🎉 فوز المواطنين!');
     return true;
   }
 
   if (mafiaAlive >= civAlive) {
-    channel.send('🔥 فوز المافيا! عددهم صار يساوي أو أكثر من المواطنين.');
+    channel.send('🔥 فوز المافيا!');
     return true;
   }
 
@@ -280,9 +280,7 @@ module.exports = {
     const embed = new EmbedBuilder()
       .setTitle('🎭 لعبة المافيا')
       .setDescription(
-        'اضغط زر **انضمام** للدخول.\n' +
-        'الحد الأدنى: 4 لاعبين، الحد الأقصى: 10 لاعبين.\n' +
-        'لما يكتمل العدد اضغط **بدء اللعبة**.'
+        'اضغط **انضمام**.\nالحد الأدنى: 4 لاعبين.\nالحد الأقصى: 10 لاعبين.'
       )
       .setColor(0x8b0000);
 
@@ -306,33 +304,32 @@ module.exports = {
     const client = i.client;
 
     if (cooldown.check(i.user.id, 'mafia', config.cooldown)) {
-      return i.reply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.', ephemeral: true });
+      return i.editReply({ content: '⏳ انتظر قبل ما تلعب مرة ثانية.' });
     }
 
     if (i.customId === 'mafia_join') {
       if (game.started) {
-    return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
+        return i.editReply({ content: 'اللعبة بدأت بالفعل.' });
       }
 
       if (game.players.size >= 10) {
-        return i.reply({ content: 'وصلنا الحد الأقصى (10 لاعبين).', ephemeral: true });
+        return i.editReply({ content: 'وصلنا الحد الأقصى (10 لاعبين).' });
       }
 
       game.players.set(i.user.id, { id: i.user.id, role: null, alive: true });
 
-      return i.reply({
-        content: `انضم ${i.user}. عدد اللاعبين الآن: ${game.players.size}`,
-        ephemeral: true
+      return i.editReply({
+        content: `انضم ${i.user}. عدد اللاعبين الآن: ${game.players.size}`
       });
     }
 
     if (i.customId === 'mafia_start') {
       if (i.user.id !== game.hostId) {
-        return i.reply({ content: 'فقط صاحب اللعبة يقدر يبدأها.', ephemeral: true });
+        return i.editReply({ content: 'فقط صاحب اللعبة يقدر يبدأها.' });
       }
 
       if (game.players.size < 4) {
-        return i.reply({ content: 'تحتاج 4 لاعبين على الأقل.', ephemeral: true });
+        return i.editReply({ content: 'تحتاج 4 لاعبين على الأقل.' });
       }
 
       game.started = true;
@@ -343,7 +340,7 @@ module.exports = {
         result += `<@${p.id}> → **${p.role}**\n`;
       }
 
-      await i.update({
+      await i.editReply({
         embeds: [
           new EmbedBuilder()
             .setTitle('🎭 توزيع الأدوار')
@@ -372,12 +369,12 @@ module.exports = {
       const adminSelect = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
           .setCustomId('mafia_choose_admin')
-          .setPlaceholder('اختر الأدمن للعبة المافيا')
+          .setPlaceholder('اختر الأدمن')
           .addOptions(options)
       );
 
       await i.followUp({
-        content: 'اختر الأدمن للعبة المافيا:',
+        content: 'اختر الأدمن:',
         components: [adminSelect],
         ephemeral: false
       });
@@ -389,7 +386,7 @@ module.exports = {
       const chosenId = i.values[0];
       game.adminId = chosenId;
 
-      await i.update({
+      await i.editReply({
         content: `تم اختيار <@${chosenId}> كأدمن اللعبة.`,
         components: []
       });
@@ -399,19 +396,18 @@ module.exports = {
       return;
     }
 
-        // استهداف المافيا
     if (i.customId.startsWith('mafia_target_')) {
       const targetId = i.customId.split('_')[2];
       const mafia = game.players.get(i.user.id);
       if (!mafia || mafia.role !== ROLES.MAFIA || !mafia.alive) {
-        return i.reply({ content: 'هذا الخيار فقط للمافيا.', ephemeral: true });
+        return i.editReply({ content: 'هذا الخيار فقط للمافيا.' });
       }
 
       game.mafiaTargets.set(i.user.id, targetId);
 
       if (game.mafiaCount === 1) {
         game.pendingKill = { targetId };
-        return i.reply({ content: `تم اختيار الهدف: <@${targetId}>`, ephemeral: true });
+        return i.editReply({ content: `تم اختيار الهدف: <@${targetId}>` });
       }
 
       const otherMafia = [...game.players.values()].find(
@@ -419,7 +415,7 @@ module.exports = {
       );
       if (!otherMafia) {
         game.pendingKill = { targetId };
-        return i.reply({ content: `تم اختيار الهدف: <@${targetId}>`, ephemeral: true });
+        return i.editReply({ content: `تم اختيار الهدف: <@${targetId}>` });
       }
 
       const row = new ActionRowBuilder().addComponents(
@@ -436,15 +432,14 @@ module.exports = {
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (channel) {
         await channel.send({
-          content: `@${i.user.username} يريد قتل <@${targetId}>.\nالمافيا الثاني: اختر موافق أو غير موافق.`,
+          content: `المافيا الثاني: هل توافق على قتل <@${targetId}>؟`,
           components: [row]
         });
       }
 
-      return i.reply({ content: 'تم إرسال الطلب للمافيا الثاني.', ephemeral: true });
+      return i.editReply({ content: 'تم إرسال الطلب للمافيا الثاني.' });
     }
 
-    // تأكيد المافيا
     if (i.customId.startsWith('mafia_confirm_')) {
       const parts = i.customId.split('_');
       const action = parts[2];
@@ -452,31 +447,29 @@ module.exports = {
 
       const mafia = game.players.get(i.user.id);
       if (!mafia || mafia.role !== ROLES.MAFIA || !mafia.alive) {
-        return i.reply({ content: 'هذا الخيار فقط للمافيا.', ephemeral: true });
+        return i.editReply({ content: 'هذا الخيار فقط للمافيا.' });
       }
 
       if (action === 'yes') {
         game.pendingKill = { targetId };
-        return i.reply({ content: `تم تأكيد قتل <@${targetId}>.`, ephemeral: true });
+        return i.editReply({ content: `تم تأكيد قتل <@${targetId}>.` });
       } else {
         game.pendingKill = null;
-        return i.reply({ content: 'تم رفض الهدف، اختروا شخص آخر.', ephemeral: true });
+        return i.editReply({ content: 'تم رفض الهدف.' });
       }
     }
 
-    // حماية الدكتور
     if (i.customId.startsWith('doctor_protect_')) {
       const targetId = i.customId.split('_')[2];
       const doctor = game.players.get(i.user.id);
       if (!doctor || doctor.role !== ROLES.DOCTOR || !doctor.alive) {
-        return i.reply({ content: 'هذا الخيار فقط للدكتور.', ephemeral: true });
+        return i.editReply({ content: 'هذا الخيار فقط للدكتور.' });
       }
 
       if (targetId === i.user.id) {
         if (game.doctorSelfUsed >= 1 && game.currentNight < 3) {
-          return i.reply({
-            content: 'ما تقدر تحمي نفسك الآن. الحماية الذاتية محدودة.',
-            ephemeral: true
+          return i.editReply({
+            content: 'ما تقدر تحمي نفسك الآن.'
           });
         }
         game.doctorSelfUsed++;
@@ -484,82 +477,89 @@ module.exports = {
 
       if (game.pendingKill && game.pendingKill.targetId === targetId) {
         game.pendingKill = null;
-        return i.reply({
-          content: `🩺 تم إنقاذ <@${targetId}> هذه الليلة.`,
-          ephemeral: true
+        return i.editReply({
+          content: `🩺 تم إنقاذ <@${targetId}>.`
         });
       }
 
-      return i.reply({
-        content: `🩺 تم حماية <@${targetId}> هذه الليلة.`,
-        ephemeral: true
+      return i.editReply({
+        content: `🩺 تم حماية <@${targetId}>.`
       });
     }
 
-    // تحقق المحقق
     if (i.customId.startsWith('detective_check_')) {
       const targetId = i.customId.split('_')[2];
       const detective = game.players.get(i.user.id);
       if (!detective || detective.role !== ROLES.DETECTIVE || !detective.alive) {
-        return i.reply({ content: 'هذا الخيار فقط للمحقق.', ephemeral: true });
+        return i.editReply({ content: 'هذا الخيار فقط للمحقق.' });
       }
 
       const target = game.players.get(targetId);
       if (!target) {
-        return i.reply({ content: 'الهدف غير موجود.', ephemeral: true });
+        return i.editReply({ content: 'الهدف غير موجود.' });
       }
 
       const isKiller = target.role === ROLES.MAFIA;
-      return i.reply({
+      return i.editReply({
         content: isKiller
           ? '🔍 هذا الشخص **قاتل (مافيا)**.'
-          : '🔍 هذا الشخص **ليس قاتلًا**.',
-        ephemeral: true
+          : '🔍 هذا الشخص **ليس قاتلًا**.'
       });
     }
 
-    // إنهاء الليل
     if (i.customId === 'mafia_end_night') {
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (!channel) return;
       await resolveNight(channel);
-      return;
+      return i.editReply({ content: 'تم إنهاء الليل.' });
     }
 
-    // تصويت النهار
     if (i.customId.startsWith('day_vote_')) {
       const targetId = i.customId.split('_')[2];
       const voter = game.players.get(i.user.id);
       if (!voter || !voter.alive) {
-        return i.reply({ content: 'فقط اللاعبين الأحياء يقدرون يصوتون.', ephemeral: true });
+        return i.editReply({ content: 'فقط اللاعبين الأحياء يصوتون.' });
       }
 
       game.votes.set(i.user.id, targetId);
       game.skipVotes.delete(i.user.id);
 
-      return i.reply({
-        content: `تم تسجيل تصويتك على <@${targetId}>.`,
-        ephemeral: true
+      return i.editReply({
+        content: `تم تسجيل تصويتك على <@${targetId}>.`
       });
     }
 
-    // تخطي النهار
+        if (i.customId.startsWith('day_vote_')) {
+      const targetId = i.customId.split('_')[2];
+      const voter = game.players.get(i.user.id);
+
+      if (!voter || !voter.alive) {
+        return i.editReply({ content: 'فقط اللاعبين الأحياء يقدرون يصوتون.' });
+      }
+
+      game.votes.set(i.user.id, targetId);
+      game.skipVotes.delete(i.user.id);
+
+      return i.editReply({
+        content: `تم تسجيل تصويتك على <@${targetId}>.`
+      });
+    }
+
     if (i.customId === 'day_skip') {
       const voter = game.players.get(i.user.id);
+
       if (!voter || !voter.alive) {
-        return i.reply({ content: 'فقط اللاعبين الأحياء يقدرون يصوتون.', ephemeral: true });
+        return i.editReply({ content: 'فقط اللاعبين الأحياء يقدرون يصوتون.' });
       }
 
       game.votes.delete(i.user.id);
       game.skipVotes.add(i.user.id);
 
-      return i.reply({
-        content: 'تم تسجيل تخطي / سكب لك.',
-        ephemeral: true
+      return i.editReply({
+        content: 'تم تسجيل التخطي / السكب لك.'
       });
     }
 
-    // إنهاء النهار
     if (i.customId === 'day_end') {
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (!channel) return;
@@ -567,15 +567,19 @@ module.exports = {
       const alive = getAlivePlayers();
       const totalAlive = alive.length;
 
+      // إذا نص اللاعبين أو أكثر صوتوا تخطي
       if (game.skipVotes.size >= Math.ceil(totalAlive / 2)) {
         await channel.send('📢 تم التخطي، ما تم إعدام أحد هذا النهار.');
       } else {
         const counts = {};
+
         for (const targetId of game.votes.values()) {
           counts[targetId] = (counts[targetId] || 0) + 1;
         }
+
         let maxTarget = null;
         let maxCount = 0;
+
         for (const [tid, c] of Object.entries(counts)) {
           if (c > maxCount) {
             maxCount = c;
@@ -585,6 +589,7 @@ module.exports = {
 
         if (maxTarget && maxCount >= Math.ceil(totalAlive / 2)) {
           const target = game.players.get(maxTarget);
+
           if (target && target.alive) {
             target.alive = false;
             await channel.send(`⚖️ تم إعدام <@${maxTarget}> بالتصويت.`);
@@ -599,20 +604,22 @@ module.exports = {
       if (!checkWin(channel)) {
         await startNight(client, channel);
       }
+
+      return i.editReply({ content: 'تم إنهاء النهار.' });
     }
 
-    // إنهاء اللعبة يدويًا من الأدمن
     if (i.customId === 'mafia_end_game') {
       if (i.user.id !== game.adminId) {
-        return i.reply({ content: 'فقط الأدمن يقدر ينهي اللعبة.', ephemeral: true });
+        return i.editReply({ content: 'فقط الأدمن يقدر ينهي اللعبة.' });
       }
 
       const channel = await client.channels.fetch(game.channelId).catch(() => null);
       if (!channel) return;
 
-      await endGame(channel);
-      return i.reply({ content: '✅ تم إنهاء اللعبة بنجاح.', ephemeral: true });
-    }
-      } // نهاية دالة handle
+      await channel.send('🛑 تم إنهاء اللعبة من الأدمن.');
+      resetGame();
 
+      return i.editReply({ content: '✅ تم إنهاء اللعبة بنجاح.' });
+    }
+  } // نهاية handle
 }; // نهاية module.exports

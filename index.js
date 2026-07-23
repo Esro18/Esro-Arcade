@@ -74,18 +74,17 @@ client.on('interactionCreate', async (i) => {
     return;
   }
 
-  // ⚠️ أهم تعديل — يمنع التعليق نهائيًا
-  await i.deferReply({ ephemeral: true }).catch(() => {});
-
   // صلاحيات الأدمن
   if (!isAdmin(i.member)) {
-    return i.editReply({
-      content: "❌ ما عندك صلاحية تتحكم بالبوت."
+    return i.reply({
+      content: "❌ ما عندك صلاحية تتحكم بالبوت.",
+      ephemeral: true
     });
   }
 
   // قائمة الألعاب
   if (i.isStringSelectMenu()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
     return menu.handle(i, {
       riddle: riddles,
       mafia: mafia,
@@ -102,6 +101,7 @@ client.on('interactionCreate', async (i) => {
 
   // أزرار الألعاب
   if (i.isButton()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
 
     const handlers = {
       riddle_: riddles,
@@ -124,6 +124,7 @@ client.on('interactionCreate', async (i) => {
 
   // أوامر السلاش
   if (i.isChatInputCommand()) {
+    await i.deferReply({ ephemeral: true }).catch(() => {});
 
     const command = client.commands.get(i.commandName);
     if (!command) return;
